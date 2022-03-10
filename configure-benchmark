@@ -1,0 +1,54 @@
+#!/bin/bash
+set -eu
+# learning problems (directory with json files)
+PRIVATE_DATA_DIR="$1"
+# https://github.com/dice-group/raki-ilp-benchmark/
+RAKI_BENCHMARK_DIR="$2"
+# benchmark.ttl file for HOBBIT
+RAKI_TTL="$3"
+# ConEx_entity_embeddings.csv
+EMBEDDINGS_CSV="$4"
+# DrillHeuristic_averaging.pth
+DRILL_PTH="$5"
+# ontology.owl
+ONTOLOGY_FILE="$6"
+# rdf:about value of owl:Ontology
+ontology="$7"
+
+RAKI_CONFIG="$RAKI_BENCHMARK_DIR/raki-hobbit/src/main/resources/benchmark.yaml"
+RAKI_MAPPING="$RAKI_BENCHMARK_DIR/raki-system-adapter/src/main/resources/drill-mapping.properties"
+
+for bench in $(find "$PRIVATE_DATA_DIR" -maxdepth 1 -name '*.json' ! -name 'exclude_concepts.json'); do
+    name="Private_$(basename "${bench%.*}")"
+    echo "$name"
+    id="http://w3id.org/raki/hobbit/vocab#$name"
+    data="$RAKI_BENCHMARK_DIR/raki-hobbit/data/$name"
+    mkdir -p "$data"
+    cp "$ONTOLOGY_FILE" "$data/ontology.owl"
+    cat <(echo '[') "$bench" <(echo ']') >"$data"/lp.json
+    # cp "$bench" "$data/lp.json"
+    grep -q -F "'$id'" "$RAKI_CONFIG" ||echo -e "\n  - name: '$id'\n    dataset: '/raki/data/$name/ontology.owl'\n    learningProblem: '/raki/data/$name/lp.json'" >>"$RAKI_CONFIG"
+    grep -q -F "'$name'" "$RAKI_TTL" ||echo -e "\nraki:$name a raki:Datasets; rdfs:label '$name'@en." >>"$RAKI_TTL"
+done
+
+EMBEDDINGS_ZIP="$RAKI_BENCHMARK_DIR"/raki-system-adapter/embeddings.zip
+unzip "$EMBEDDINGS_ZIP" -d .
+AGENTS_ZIP="$RAKI_BENCHMARK_DIR"/raki-system-adapter/pre_trained_agents.zip
+unzip "$AGENTS_ZIP" -d .
+
+ontology_esc=$(echo -n "$ontology" |sed 's/:/\\:/')
+grep -q -F "$ontology_esc=" "$RAKI_MAPPING" ||echo >>"$RAKI_MAPPING"
+grep -q -F "$ontology_esc=" "$RAKI_MAPPING" ||echo "$ontology_esc=Private/$(basename "$EMBEDDINGS_CSV"), Private/$(basename "$DRILL_PTH")" >>"$RAKI_MAPPING"
+
+EMBEDDINGS_DIR=embeddings/Private
+mkdir -p "$EMBEDDINGS_DIR"
+cp "$EMBEDDINGS_CSV" "$EMBEDDINGS_DIR"
+
+AGENTS_DIR=pre_trained_agents/Private
+mkdir -p "$AGENTS_DIR"
+cp "$DRILL_PTH" "$AGENTS_DIR"
+
+zip -ur "$EMBEDDINGS_ZIP" embeddings/
+zip -ur "$AGENTS_ZIP" pre_trained_agents/
+rm -rf embeddings/
+rm -rf pre_trained_agents/

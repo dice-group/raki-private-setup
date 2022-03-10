@@ -1,0 +1,74 @@
+---
+- hosts: all
+  gather_facts: True
+  tasks:
+    - git:
+        repo: https://github.com/hobbit-project/platform
+        dest: "{{base_path}}/hobbit-platform"
+        depth: 1
+        force: yes
+    - file:
+        path: "{{base_path}}/hobbit-platform/config/keycloak"
+        mode: "a+rwx"
+    - file:
+        path: "{{base_path}}/hobbit-platform/config/keycloak/keycloak.h2.db"
+        mode: "a+rwx"
+    # - lineinfile:
+    #     path: "{{base_path}}/hobbit-platform/docker-compose.yml"
+    #     regexp: "- KEYCLOAK_AUTH_URL="
+    #     line: "      - KEYCLOAK_AUTH_URL=http://{{ansible_fqdn}}:8181/auth"
+    - lineinfile:
+        path: "{{base_path}}/hobbit-platform/docker-compose.yml"
+        regexp: "LOCAL_METADATA_DIRECTORY:"
+        insertafter: "GITLAB_TOKEN"
+        line: "      LOCAL_METADATA_DIRECTORY: /usr/src/app/metadata/"
+        firstmatch: yes
+    - lineinfile:
+        path: "{{base_path}}/hobbit-platform/docker-compose.yml"
+        regexp: "DOCKER_AUTOPULL:"
+        insertafter: "GITLAB_TOKEN"
+        line: "      DOCKER_AUTOPULL: 0"
+        firstmatch: yes
+    - lineinfile:
+        path: "{{base_path}}/hobbit-platform/docker-compose.yml"
+        regexp: ":/usr/src/app/metadata"
+        insertafter: "/var/run/docker.sock"
+        line: "      - {{base_path}}/metadata:/usr/src/app/metadata"
+        firstmatch: yes
+    - copy:
+        src: hobbit-platform.env
+        dest: "{{base_path}}/hobbit-platform/.env"
+    - file:
+        path: "{{base_path}}/metadata"
+        state: directory
+    - copy:
+        src: benchmark.ttl
+        dest: "{{base_path}}/metadata/benchmark.ttl"
+    - copy:
+        src: system.ttl
+        dest: "{{base_path}}/metadata/system.ttl"
+- hosts: all
+  gather_facts: False
+  become: yes
+  tasks:
+    - apt:
+        pkg:
+          - docker.io
+          - docker-compose
+          - maven # only for builds
+    - name: docker swarm init
+      command: docker swarm init
+      register: result
+      changed_when: "result.rc == 0"
+      failed_when: "result.rc != 0 and 'This node is already part of a swarm' not in result.stderr"
+    - name: create-networks
+      command: "make -C {{base_path}}/hobbit-platform create-networks"
+    - name: up
+      command: "docker-compose up -d"
+      args:
+        chdir: "{{base_path}}/hobbit-platform" # needed to make docker-compose use .env file
+    - name: storage init
+      command: "{{base_path}}/hobbit-platform/run-storage-init.sh"
+      register: result
+      changed_when: "result.rc == 0"
+      failed_when: "result.rc != 0 and 'Bad login' not in result.stdout"

@@ -1,0 +1,15 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix hobbit: <http://w3id.org/hobbit/vocab#> .
+@prefix raki: <http://w3id.org/raki/hobbit/vocab#> .
+
+raki:Ontolearn-P a  hobbit:SystemInstance;
+	rdfs:label	"Ontolearn (local private)"@en;
+	rdfs:comment	"The Ontolearn system"@en;
+	hobbit:imageName "git.project-hobbit.eu:4567/raki/raki-private/raki-systems/ontolearn:private";
+	hobbit:implementsAPI raki:Private-API .
+
+raki:DLLearner-Private-P a  hobbit:SystemInstance;
+	rdfs:label	"DL-Learner (local private)"@en;
+	rdfs:comment	"The DL-Learner CELOE algorithm"@en;
+	hobbit:imageName "git.project-hobbit.eu:4567/raki/raki-private/raki-systems/dllearner:private";
+	hobbit:implementsAPI raki:Private-API .

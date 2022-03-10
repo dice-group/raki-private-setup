@@ -1,0 +1,22 @@
+Train embeddings and DRILL:
+./train-drill your-ontology.owl
+
+Download benchmark.ttl and save it as ./benchmark.ttl:
+https://git.project-hobbit.eu/raki/raki-private/raki-benchmark/-/blob/master/benchmark.ttl
+
+Edit the benchmark.ttl to add ":private" tags for Docker image names.
+
+Clone the raki-private branch of the RAKI benchmark:
+git clone -b raki-private https://github.com/dice-group/raki-ilp-benchmark
+
+Configure the RAKI benchmark with your data; the last parameter is the value of rdf:about in owl:Ontology:
+./configure-benchmark ../directory-with-learning-problems raki-ilp-benchmark ./benchmark.ttl trained-embeddings.csv trained-drill.pth your-ontology-file.owl your-ontology-id
+
+Build RAKI images (on the same host where HOBBIT would run):
+(cd raki-ilp-benchmark && ./build.sh)
+
+You may set additional variables in hobbit-platform.env.
+
+Download, configure and start HOBBIT:
+make # once
+ansible-playbook -e ansible_python_interpreter=/usr/bin/python3 raki-hobbit.yml

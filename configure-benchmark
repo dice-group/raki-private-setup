@@ -32,23 +32,21 @@ for bench in $(find "$PRIVATE_DATA_DIR" -maxdepth 1 -name '*.json' ! -name 'excl
 done
 
 EMBEDDINGS_ZIP="$RAKI_BENCHMARK_DIR"/raki-system-adapter/embeddings.zip
-unzip "$EMBEDDINGS_ZIP" -d .
+unzip "$EMBEDDINGS_ZIP" -d "$RAKI_BENCHMARK_DIR"/raki-system-adapter
 AGENTS_ZIP="$RAKI_BENCHMARK_DIR"/raki-system-adapter/pre_trained_agents.zip
-unzip "$AGENTS_ZIP" -d .
+unzip "$AGENTS_ZIP" -d "$RAKI_BENCHMARK_DIR"/raki-system-adapter
 
 ontology_esc=$(echo -n "$ontology" |sed 's/:/\\:/')
 grep -q -F "$ontology_esc=" "$RAKI_MAPPING" ||echo >>"$RAKI_MAPPING"
 grep -q -F "$ontology_esc=" "$RAKI_MAPPING" ||echo "$ontology_esc=Private/$(basename "$EMBEDDINGS_CSV"), Private/$(basename "$DRILL_PTH")" >>"$RAKI_MAPPING"
 
-EMBEDDINGS_DIR=embeddings/Private
+EMBEDDINGS_DIR="$RAKI_BENCHMARK_DIR"/raki-system-adapter/embeddings/Private
 mkdir -p "$EMBEDDINGS_DIR"
 cp "$EMBEDDINGS_CSV" "$EMBEDDINGS_DIR"
 
-AGENTS_DIR=pre_trained_agents/Private
+AGENTS_DIR="$RAKI_BENCHMARK_DIR"/raki-system-adapter/pre_trained_agents/Private
 mkdir -p "$AGENTS_DIR"
 cp "$DRILL_PTH" "$AGENTS_DIR"
 
-zip -ur "$EMBEDDINGS_ZIP" embeddings/
-zip -ur "$AGENTS_ZIP" pre_trained_agents/
-rm -rf embeddings/
-rm -rf pre_trained_agents/
+zip -ur "$EMBEDDINGS_ZIP" "$RAKI_BENCHMARK_DIR"/raki-system-adapter/embeddings/
+zip -ur "$AGENTS_ZIP" "$RAKI_BENCHMARK_DIR"/raki-system-adapter/pre_trained_agents/

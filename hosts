@@ -1,1 +1,2 @@
-raki-hobbit base_path=/data/raki-hobbit
+localhost ansible_connection=local base_path=/data
+#some-remote-host base_path=/data

@@ -10,18 +10,18 @@ git clone --depth 1 -b raki-private https://github.com/dice-group/raki-ilp-bench
 wget "https://github.com/dice-group/DRILL/blob/main/embeddings.zip?raw=true" -O raki-ilp-benchmark/raki-system-adapter/embeddings.zip
 wget "https://github.com/dice-group/DRILL/blob/main/pre_trained_agents.zip?raw=true" -O raki-ilp-benchmark/raki-system-adapter/pre_trained_agents.zip
 
+Download benchmark.ttl and save it as ./benchmark.ttl:
+https://git.project-hobbit.eu/raki/raki-private/raki-benchmark/-/blob/master/benchmark.ttl
+
+Edit the benchmark.ttl to add ":private" tags for Docker image names:
+sed -i '/imageName\|usesImage/s/";/:private";/' benchmark.ttl
+
 Configure the benchmark; the last parameter is the value of rdf:about in owl:Ontology:
 ./configure-benchmark YOUR-directory-with-learning-problems raki-ilp-benchmark benchmark.ttl "$(sh -c 'echo "$1"' sh Experiments/*/*_entity_embeddings.csv)" "$(sh -c 'echo "$1"' sh Log/*/*.pth)" YOUR-ontology.owl YOUR-ontology-id
 (this process is described in more details in RAKI benchmark README)
 
 Build images for the benchmark and systems:
 (cd raki-ilp-benchmark && ./build.sh)
-
-Download benchmark.ttl and save it as ./benchmark.ttl:
-https://git.project-hobbit.eu/raki/raki-private/raki-benchmark/-/blob/master/benchmark.ttl
-
-Edit the benchmark.ttl to add ":private" tags for Docker image names:
-sed -i '/imageName\|usesImage/s/";/:private";/' benchmark.ttl
 
 Configure the hostname of the system (can be localhost) and base directory in ./hosts.
 

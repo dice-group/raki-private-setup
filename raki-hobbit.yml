@@ -51,11 +51,6 @@
   gather_facts: False
   become: yes
   tasks:
-    - apt:
-        pkg:
-          - docker.io
-          - docker-compose
-          - maven # only for builds
     - name: docker swarm init
       command: docker swarm init
       register: result

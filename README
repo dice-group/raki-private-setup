@@ -1,4 +1,4 @@
-Install ansible, docker.io, git, maven, python3, python3-apt, python3-pip, unzip and zip.
+Install ansible, docker.io, docker-compose, git, maven, python3, python3-apt, python3-pip, unzip and zip.
 
 Clone this repository and change to the working copy.
 
@@ -9,6 +9,8 @@ Clone the raki-private branch of the RAKI benchmark:
 git clone --depth 1 -b raki-private https://github.com/dice-group/raki-ilp-benchmark
 wget "https://github.com/dice-group/DRILL/blob/main/embeddings.zip?raw=true" -O raki-ilp-benchmark/raki-system-adapter/embeddings.zip
 wget "https://github.com/dice-group/DRILL/blob/main/pre_trained_agents.zip?raw=true" -O raki-ilp-benchmark/raki-system-adapter/pre_trained_agents.zip
+unzip raki-ilp-benchmark/raki-system-adapter/embeddings.zip -d raki-ilp-benchmark/raki-system-adapter
+unzip raki-ilp-benchmark/raki-system-adapter/pre_trained_agents.zip -d raki-ilp-benchmark/raki-system-adapter
 
 Download benchmark.ttl and save it as ./benchmark.ttl:
 https://git.project-hobbit.eu/raki/raki-private/raki-benchmark/-/blob/master/benchmark.ttl
@@ -23,12 +25,15 @@ Configure the benchmark; the last parameter is the value of rdf:about in owl:Ont
 Build images for the benchmark and systems:
 (cd raki-ilp-benchmark && ./build.sh)
 
-Configure the hostname of the system (can be localhost) and base directory in ./hosts.
-
+Create a base directory for HOBBIT files, for example /data.
 Copy benchmark.ttl and system.ttl to your_base_directory/metadata.
+
+Configure the hostname of the system (can be localhost) and your base directory in ./hosts.
 
 Run:
 ansible-playbook -e ansible_python_interpreter=/usr/bin/python3 raki-hobbit.yml
 
 You can forward ports 8080 and 8181 to access HOBBIT at http://localhost:8080/
 ssh -N -L 8080:127.0.0.1:8080 -L 8181:127.0.0.1:8181
+
+For default HOBBIT users and other details, see https://hobbit-project.github.io/quick_guide.html

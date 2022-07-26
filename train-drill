@@ -3,13 +3,18 @@ set -eu
 ONTOLOGY="$1"
 
 # embeddings
+
+echo "Installing embeddings..."
 test -d dice-embeddings ||git clone --depth 1 https://github.com/dice-group/dice-embeddings
 pip3 install -r dice-embeddings/requirements.txt
 DATASET_DIR=dice-embeddings/KGs/Private
 mkdir -p "$DATASET_DIR"
+echo "Converting ontology to N-Triples..."
 sudo docker run --rm --network none --volume $(dirname $(realpath "$ONTOLOGY")):/rdf \
      stain/jena ntriples $(basename "$ONTOLOGY") >"$DATASET_DIR"/train.nt
+echo "Training embeddings..."
 python3 dice-embeddings/main.py --path_dataset_folder "$DATASET_DIR" --model "ConEx" --num_epochs 50
+echo "Done training embeddings."
 
 # DRILL
 
@@ -18,8 +23,10 @@ min_num_concepts=2
 num_of_randomly_created_problems_per_concept=1
 relearn_ratio=5
 
+echo "Installing DRILL..."
 test -d DRILL ||git clone --depth 1 https://github.com/dice-group/DRILL
 pip3 install -e DRILL
+echo "Training DRILL..."
 python3 DRILL/drill_train.py \
         --path_knowledge_base "$ONTOLOGY" \
         --path_knowledge_base_embeddings "$(sh -c 'echo "$1"' sh Experiments/*/*_entity_embeddings.csv)" \
@@ -28,3 +35,4 @@ python3 DRILL/drill_train.py \
         --num_of_randomly_created_problems_per_concept $num_of_randomly_created_problems_per_concept \
         --relearn_ratio $relearn_ratio \
         --use_illustrations False
+echo "Done training DRILL."

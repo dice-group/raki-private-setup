@@ -1,19 +1,21 @@
 #!/bin/sh
 set -eu
 ONTOLOGY="$1"
+WORK_DIR=$(sha256sum "$ONTOLOGY" |awk '{ print substr($1, 1, 16) }')
 
 # embeddings
 
+EMB_DIR=$WORK_DIR/dice-embeddings
 echo "Installing embeddings..."
-test -d dice-embeddings ||git clone --depth 1 https://github.com/dice-group/dice-embeddings
-pip3 install -r dice-embeddings/requirements.txt
-DATASET_DIR=dice-embeddings/KGs/Private
+test -d "$EMB_DIR" ||git clone --branch 1.0.3 --depth 1 https://github.com/dice-group/dice-embeddings "$EMB_DIR"
+pip3 install -r "$EMB_DIR"/requirements.txt
+DATASET_DIR="$EMB_DIR"/KGs/Private
 mkdir -p "$DATASET_DIR"
 echo "Converting ontology to N-Triples..."
 sudo docker run --rm --network none --volume $(dirname $(realpath "$ONTOLOGY")):/rdf \
      stain/jena ntriples $(basename "$ONTOLOGY") >"$DATASET_DIR"/train.nt
 echo "Training embeddings..."
-python3 dice-embeddings/main.py --path_dataset_folder "$DATASET_DIR" --model "ConEx" --num_epochs 50
+python3 "$EMB_DIR"/main.py --storage_path "$WORK_DIR/Experiments" --path_dataset_folder "$DATASET_DIR" --model "ConEx" --num_epochs 50
 echo "Done training embeddings."
 
 # DRILL
@@ -23,16 +25,19 @@ min_num_concepts=2
 num_of_randomly_created_problems_per_concept=1
 relearn_ratio=5
 
+DRILL_DIR=$WORK_DIR/drill
 echo "Installing DRILL..."
-test -d DRILL ||git clone --depth 1 https://github.com/dice-group/DRILL
-pip3 install -e DRILL
+test -d "$DRILL_DIR" ||git clone --depth 1 https://github.com/dice-group/DRILL "$DRILL_DIR"
+pip3 install -e "$DRILL_DIR"
 echo "Training DRILL..."
-python3 DRILL/drill_train.py \
-        --path_knowledge_base "$ONTOLOGY" \
+(
+    cd "$WORK_DIR" &&python3 drill/drill_train.py \
+        --path_knowledge_base ../"$ONTOLOGY" \
         --path_knowledge_base_embeddings "$(sh -c 'echo "$1"' sh Experiments/*/*_entity_embeddings.csv)" \
         --num_episode $num_episode \
         --min_num_concepts $min_num_concepts \
         --num_of_randomly_created_problems_per_concept $num_of_randomly_created_problems_per_concept \
         --relearn_ratio $relearn_ratio \
         --use_illustrations False
+)
 echo "Done training DRILL."

@@ -36,7 +36,7 @@ unzip "$EMBEDDINGS_ZIP" -d "$RAKI_BENCHMARK_DIR"/raki-system-adapter
 AGENTS_ZIP="$RAKI_BENCHMARK_DIR"/raki-system-adapter/pre_trained_agents.zip
 unzip "$AGENTS_ZIP" -d "$RAKI_BENCHMARK_DIR"/raki-system-adapter
 
-ontology_esc=$(echo -n "$ontology" |sed 's/:/\\:/')
+ontology_esc=$(echo -n "$ontology" |sed 's/:/\\:/g')
 grep -q -F "$ontology_esc=" "$RAKI_MAPPING" ||echo >>"$RAKI_MAPPING"
 grep -q -F "$ontology_esc=" "$RAKI_MAPPING" ||echo "$ontology_esc=Private/$(basename "$EMBEDDINGS_CSV"), Private/$(basename "$DRILL_PTH")" >>"$RAKI_MAPPING"
 

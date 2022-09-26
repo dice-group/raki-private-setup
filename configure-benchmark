@@ -14,12 +14,14 @@ DRILL_PTH="$5"
 ONTOLOGY_FILE="$6"
 # rdf:about value of owl:Ontology
 ontology="$7"
+# custom label
+LABEL="$8"
 
 RAKI_CONFIG="$RAKI_BENCHMARK_DIR/raki-hobbit/src/main/resources/benchmark.yaml"
 RAKI_MAPPING="$RAKI_BENCHMARK_DIR/raki-system-adapter/src/main/resources/drill-mapping.properties"
 
 for bench in $(find "$PRIVATE_DATA_DIR" -maxdepth 1 -name '*.json' ! -name 'exclude_concepts.json'); do
-    name="Private_$(basename "${bench%.*}")"
+    name="Private_${LABEL}_$(basename "${bench%.*}")"
     echo "$name"
     id="http://w3id.org/raki/hobbit/vocab#$name"
     data="$RAKI_BENCHMARK_DIR/raki-hobbit/data/$name"

@@ -14,6 +14,7 @@ unzip raki-ilp-benchmark/raki-system-adapter/pre_trained_agents.zip -d raki-ilp-
 
 Download benchmark.ttl and save it as ./benchmark.ttl:
 https://git.project-hobbit.eu/raki/raki-private/raki-benchmark/-/blob/master/benchmark.ttl
+Alternative link: https://hobbitdata.informatik.uni-leipzig.de/RAKI/benchmark.ttl
 
 Edit the benchmark.ttl to add ":private" tags for Docker image names:
 sed -i '/imageName\|usesImage/s/";/:private";/' benchmark.ttl
